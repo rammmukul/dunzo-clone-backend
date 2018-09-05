@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const User = require('../api/models/users')
+const Runner = require('../api/models/runners')
 const { privateKey } = require('../secrets/jwtPrivateKey')
 
 async function authenticate (req, res, next) {
@@ -15,7 +16,9 @@ async function authenticate (req, res, next) {
 
 async function checkForJWT (userinfo, jwToken) {
   try {
-    let searchResult = (await User.findOne({ emailID: userinfo.email }).exec())
+    let searchResult =
+      await User.findOne({ emailID: userinfo.email }).exec() ||
+      await Runner.findOne({ emailID: userinfo.email }).exec()
     if (searchResult && searchResult.jwt === jwToken) {
       return true
     }

@@ -3,7 +3,8 @@ const {clientCredentials} = require('../secrets/googleOauthCredentials')
 
 const redirectURI = 'http://localhost:8000/user/oauthcallback'
 
-const scopes = ['https://www.googleapis.com/auth/userinfo.email',
+const scopes = [
+  'https://www.googleapis.com/auth/userinfo.email',
   'https://www.googleapis.com/auth/userinfo.profile'
 ]
 
@@ -18,12 +19,18 @@ const oauth2 = google.oauth2({
   version: 'v2'
 })
 
-const url = oauth2Client.generateAuthUrl({
+const userLoginURL = oauth2Client.generateAuthUrl({
   scope: scopes
+})
+
+const runnerLoginURL = oauth2Client.generateAuthUrl({
+  scope: scopes,
+  redirect_uri: 'http://localhost:8000/runner/oauthcallback'
 })
 
 module.exports = {
   oauth2Client,
   oauth2,
-  url
+  userLoginURL,
+  runnerLoginURL
 }
