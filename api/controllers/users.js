@@ -35,7 +35,7 @@ async function placeOrder (req, res) {
 
 async function handleUserInfo (req, res) {
   try {
-    let tokenObj = await getAccessToken(req, res)
+    let tokenObj = await getAccessToken(req)
     if (tokenObj) {
       oauth2Client.setCredentials(tokenObj.tokens)
       let userInfo = await getUserInfo()
@@ -51,7 +51,7 @@ async function handleUserInfo (req, res) {
   }
 }
 
-async function getAccessToken (req, res) {
+async function getAccessToken (req) {
   try {
     let tokenObj = await oauth2Client.getToken(req.query.code)
     return tokenObj
@@ -75,16 +75,16 @@ function getUserInfo () {
 async function handleUserRecord (userinfo, token) {
   try {
     let dbSearchResult = await User.findOne({ emailID: userinfo.email }).exec()
-    if (!dbSearchResult) {
+    if (!dbSearchResult.jwt.includes(token)) {
       let user = new User({
         name: userinfo.name,
         emailID: userinfo.email,
         profilePicture: userinfo.picture,
-        jwt: token
+        jwt: dbSearchResult.jwt.push(token)
       })
       return (await user.save())
     }
-    return (await User.update({ emailID: userinfo.email }, { jwt: token, recentSignedIn: Date.now() }))
+    return (await User.update({ emailID: userinfo.email }, { jwt: dbSearchResult.jwt, recentSignedIn: Date.now() }))
   } catch (error) {
     return new Error(error)
   }
