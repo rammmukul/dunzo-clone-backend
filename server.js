@@ -15,9 +15,9 @@ app.use(morgan('dev'))
 app.use(bodyParser.json())
 app.use(cookieParser())
 
-const wecomePageHandler = (req, res, next) => serveAppropriatePage(req, res, next)
+const welcomePageHandler = (req, res, next) => serveAppropriatePage(req, res, next)
 
-app.use('/', authenticate, wecomePageHandler)
+app.use('/', authenticate, welcomePageHandler)
 
 app.use('/user', usersRoute)
 app.use('/runner', runnersRoute)
