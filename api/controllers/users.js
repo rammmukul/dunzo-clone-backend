@@ -129,14 +129,13 @@ async function getOrdersAndSend (req, res) {
 }
 
 async function getOrderDetailsAndSend (req, res) {
-  console.log(req)
-  // try {
-  //   let orderDetails = await Order.findOne({ description: req.body.description }).exec()
-  //   console.log(orderDetails)
-  //   res.json({ details: orderDetails })
-  // } catch (err) {
-  //   res.json({ message: 'no details found' })
-  // }
+  try {
+    let orderDetails = await Order.findById(req.query.orderID).populate('user')
+    console.log(orderDetails)
+    res.json({ details: orderDetails })
+  } catch (err) {
+    res.json({ message: 'no details found' })
+  }
 }
 
 module.exports = {
