@@ -6,10 +6,11 @@ const { privateKey } = require('../secrets/jwtPrivateKey')
 async function authenticate (req, res, next) {
   try {
     let decodedJWT = jwt.verify(req.cookies.access_token, privateKey)
-    req.isSignedIn = await checkForJWT(decodedJWT, req.cookies.access_token)
+    req.jwt = await checkForJWT(decodedJWT, req.cookies.access_token)
+    console.log('req.jwt', req.jwt)
     req.emailID = decodedJWT.email
   } catch (error) {
-    req.isSignedIn = false
+    req.jwt = false
   }
   next()
 }
@@ -19,8 +20,8 @@ async function checkForJWT (userinfo, jwToken) {
     let searchResult =
       await User.findOne({ emailID: userinfo.email }).exec() ||
       await Runner.findOne({ emailID: userinfo.email }).exec()
-    if (searchResult && searchResult.jwt === jwToken) {
-      return true
+    if (searchResult) {
+      return jwToken
     }
     return false
   } catch (error) {

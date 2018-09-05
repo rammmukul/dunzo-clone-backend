@@ -5,9 +5,9 @@ const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { oauth2Client, oauth2, userLoginURL } = require('../../oAuth/oAuthGoogle')
 
 function serveAppropriatePage (req, res, next, jwToken, statusCode) {
-  if (req.isSignedIn) {
+  if (req.jwt) {
     if (jwToken) {
-      // res.cookie('access_token', jwToken, { httpOnly: true })
+      res.cookie('access_token', jwToken, { httpOnly: true })
     }
     //  res.redirect('http://localhost:8000/user/placeOrders')
     res.status(200).json({ message: 'login sucessful' })
@@ -19,7 +19,7 @@ function serveAppropriatePage (req, res, next, jwToken, statusCode) {
 
 async function placeOrder (req, res) {
   try {
-    if (req.isSignedIn) {
+    if (req.jwt) {
       let order = new Order({
         description: req.body.description,
         user: (await User.findOne({ emailID: req.emailID }).exec())._id
@@ -41,12 +41,12 @@ async function handleUserInfo (req, res) {
       let userInfo = await getUserInfo()
       let jwToken = jwt.sign({name: userInfo.data.name, email: userInfo.data.email}, privateKey)
       await handleUserRecord(userInfo.data, jwToken)
-      req.isSignedIn = true
+      req.jwt = jwToken
       serveAppropriatePage(req, res, null, jwToken, 200)
     }
   } catch (error) {
     console.log(error)
-    req.isSignedIn = false
+    req.jwt = false
     serveAppropriatePage(req, res, null, null, 500)
   }
 }
@@ -75,16 +75,16 @@ function getUserInfo () {
 async function handleUserRecord (userinfo, token) {
   try {
     let dbSearchResult = await User.findOne({ emailID: userinfo.email }).exec()
-    if (!dbSearchResult.jwt.includes(token)) {
-      dbSearchResult.jwt.push(token)
+    if (!dbSearchResult) {
       let user = new User({
         name: userinfo.name,
         emailID: userinfo.email,
         profilePicture: userinfo.picture,
-        jwt: dbSearchResult.jwt
+        jwt: [token]
       })
       return (await user.save())
     }
+    dbSearchResult.jwt.push(token)
     return (await User.update({ emailID: userinfo.email }, { jwt: dbSearchResult.jwt, recentSignedIn: Date.now() }))
   } catch (error) {
     return new Error(error)
@@ -92,8 +92,8 @@ async function handleUserRecord (userinfo, token) {
 }
 
 async function signoutUser (req, res) {
-  if (req.isSignedIn) {
-    let deletion = await deleteJWTValue(req.emailID)
+  if (req.jwt) {
+    let deletion = await deleteJWTValue(req.emailID, req.jwt)
     if (deletion) {
       res.clearCookie('access_token', { path: '/' })
       res.status(200).json({ message: 'you have been logged out successfully, to login please click on the link', link: userLoginURL })
@@ -104,9 +104,11 @@ async function signoutUser (req, res) {
   }
 }
 
-async function deleteJWTValue (emailID) {
+async function deleteJWTValue (emailID, jwt) {
+  console.log(emailID)
   try {
-    await User.update({ emailID: emailID }, { jwt: null })
+    let dbSearchResult = await User.findOne({ emailID }).exec()
+    await User.update({ emailID }, { jwt: null })
     return true
   } catch (error) {
     return false
