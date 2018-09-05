@@ -11,6 +11,7 @@ async function authenticate (req, res, next) {
     req.emailID = decodedJWT.email
   } catch (error) {
     req.jwt = false
+    next(Error('not signed in'))
   }
   next()
 }
