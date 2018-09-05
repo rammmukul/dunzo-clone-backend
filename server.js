@@ -9,14 +9,18 @@ const { authenticate } = require('./middlewares/authenticate')
 const { serveAppropriatePage } = require('./api/controllers/users')
 
 const usersRoute = require('./api/routes/users')
+const runnersRoute = require('./api/routes/runners')
 
 app.use(morgan('dev'))
 app.use(bodyParser.json())
 app.use(cookieParser())
 
-app.use('/', authenticate, serveAppropriatePage)
+const wecomePageHandler = (req, res, next) => serveAppropriatePage(req, res, next)
+
+app.use('/', authenticate, wecomePageHandler)
 
 app.use('/user', usersRoute)
+app.use('/runner', runnersRoute)
 
 // app.use('/', authenticate,
 //   handleHomePageRequest,
