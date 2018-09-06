@@ -24,10 +24,6 @@ app.get('/', authenticate, homePageHandler)
 app.use('/user', usersRoute)
 app.use('/runner', runnersRoute)
 
-// app.use('/', authenticate,
-//   handleHomePageRequest,
-//   express.static(path.join(__dirname, 'views', 'login')))
-
 mongoose.connect('mongodb://localhost:27017/dunzoClone', { useNewUrlParser: true })
 
 let db = mongoose.connection
