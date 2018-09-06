@@ -18,7 +18,7 @@ async function authenticate (req, res, next) {
       ...req.locals,
       jwt: false
     }
-    res.redirect('/user/getLoginURL')
+    res.redirect('http://localhost:8000/user/getLoginURL')
   }
 }
 
