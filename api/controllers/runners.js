@@ -75,7 +75,10 @@ module.exports = {
         privateKey
       )
       await handleRunnerRecord(runnerInfo.data, jwt)
-      req.locals.jwt = jwt
+      req.locals = {
+        ...req.locals,
+        jwt
+      }
       res.json('signedIn')
     }
     res.json('not signedIn')

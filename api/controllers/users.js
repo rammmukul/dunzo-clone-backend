@@ -4,50 +4,50 @@ const Order = require('../models/orders')
 const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { oauth2Client, oauth2, userLoginURL } = require('../../oAuth/oAuthGoogle')
 
-function serveAppropriatePage (req, res, next, jwToken, statusCode) {
-  if (req.locals.jwt) {
-    if (jwToken) {
-      res.cookie('access_token', jwToken, { httpOnly: true })
-    }
-    //  res.redirect('http://localhost:8000/user/placeOrders')
-    res.status(200).json({ message: 'login sucessful' })
-  } else {
-    //  res.redirect('http://localhost:8000/login')
+function setCookie (req, res, next, jwToken, statusCode) {
+  try {
+    res.cookie('access_token', req.locals.jwt)
+  } catch (e) {
     res.status(200).json({ link: userLoginURL })
   }
 }
 
 async function placeOrder (req, res) {
   try {
-    if (req.locals.jwt) {
-      let order = new Order({
-        description: req.body.description,
-        user: (await User.findOne({ emailID: req.locals.emailID }).exec())._id
-      })
-      await order.save()
-      //  res.redirect('http://localhost:8000/orders/showOrders')
-    }
+    let order = new Order({
+      ...req.body,
+      user: (await User.findOne({ emailID: req.locals.emailID }).exec())._id
+    })
+    await order.save()
+    res.json(true)
   } catch (err) {
     console.error('err0r:', err)
+    res.json(false)
     // send message to user that order didn't get placed
   }
 }
 
-async function handleUserInfo (req, res) {
+async function oauthcallback (req, res) {
   try {
     let tokenObj = await getAccessToken(req.query.code)
     if (tokenObj) {
       oauth2Client.setCredentials(tokenObj.tokens)
-      let userInfo = await getUserInfo()
+      let userInfo = await getUserInfo().catch(console.log)
       let jwToken = jwt.sign({name: userInfo.data.name, email: userInfo.data.email}, privateKey)
       await handleUserRecord(userInfo.data, jwToken)
-      req.locals.jwt = jwToken
-      serveAppropriatePage(req, res, null, jwToken, 200)
+      req.locals = {
+        ...req.locals,
+        jwt: jwToken
+      }
+      res.cookie('access_token', jwToken)
+      res.json('login successful')
     }
   } catch (error) {
     console.log(error)
-    req.locals.jwt = false
-    serveAppropriatePage(req, res, null, null, 500)
+    req.locals = {
+      ...req.locals,
+      jwt: false
+    }
   }
 }
 
@@ -92,7 +92,7 @@ async function handleUserRecord (userinfo, token) {
 }
 
 async function signoutUser (req, res) {
-  if (req.locals.jwt) {
+  if (req.locals && req.locals.jwt) {
     let deletion = await deleteJWTValue(req.locals.emailID, req.locals.jwt)
     if (deletion) {
       res.clearCookie('access_token', { path: '/' })
@@ -108,9 +108,10 @@ async function deleteJWTValue (emailID, jwt) {
   console.log(emailID)
   try {
     let dbSearchResult = await User.findOne({ emailID }).exec()
-    await User.update({ emailID }, { jwt: dbSearchResult.filter(e => e !== jwt) })
+    await User.update({ emailID }, { jwt: dbSearchResult.jwt.filter(e => e !== jwt) })
     return true
   } catch (error) {
+    console.log(error)
     return false
   }
 }
@@ -130,7 +131,7 @@ async function getOrdersAndSend (req, res) {
 
 async function getOrderDetailsAndSend (req, res) {
   try {
-    let orderDetails = await Order.findById(req.query.orderID).exec()
+    let orderDetails = await Order.findById(req.query.orderID).populate('runner')
     res.json({ details: orderDetails })
   } catch (err) {
     res.json({ message: 'no details found' })
@@ -138,10 +139,10 @@ async function getOrderDetailsAndSend (req, res) {
 }
 
 module.exports = {
-  handleUserInfo,
+  oauthcallback,
   placeOrder,
   signoutUser,
-  serveAppropriatePage,
+  setCookie,
   getLoginURLAndSend,
   getOrdersAndSend,
   getOrderDetailsAndSend

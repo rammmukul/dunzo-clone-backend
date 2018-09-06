@@ -6,14 +6,20 @@ const { privateKey } = require('../secrets/jwtPrivateKey')
 async function authenticate (req, res, next) {
   try {
     let decodedJWT = jwt.verify(req.cookies.access_token, privateKey)
-    req.locals.jwt = await checkForJWT(decodedJWT, req.cookies.access_token)
+    req.locals = {
+      ...req.locals,
+      jwt: await checkForJWT(decodedJWT, req.cookies.access_token)
+    }
     console.log('req.locals.jwt', req.locals.jwt)
     req.locals.emailID = decodedJWT.email
+    next()
   } catch (error) {
-    req.locals.jwt = false
-    next(Error('not signed in'))
+    req.locals = {
+      ...req.locals,
+      jwt: false
+    }
+    res.redirect('/user/getLoginURL')
   }
-  next()
 }
 
 async function checkForJWT (userinfo, jwToken) {
@@ -21,13 +27,14 @@ async function checkForJWT (userinfo, jwToken) {
     let searchResult =
       await User.findOne({ emailID: userinfo.email }).exec() ||
       await Runner.findOne({ emailID: userinfo.email }).exec()
+    console.log('searchResult', searchResult)
     if (searchResult && searchResult.jwt.includes(jwToken)) {
       return jwToken
     }
-    return false
   } catch (error) {
     console.log(error)
   }
+  return false
 }
 
 module.exports = { authenticate }
