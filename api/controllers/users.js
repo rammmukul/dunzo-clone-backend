@@ -138,6 +138,15 @@ async function getOrderDetailsAndSend (req, res) {
   }
 }
 
+async function getUserProfile (req, res) {
+  try {
+    let user = await User.find({emailID: req.locals.emailID})
+    res.json(user)
+  } catch (e) {
+    console.log(e)
+  }
+}
+
 module.exports = {
   oauthcallback,
   placeOrder,
@@ -145,5 +154,6 @@ module.exports = {
   setCookie,
   getLoginURLAndSend,
   getOrdersAndSend,
-  getOrderDetailsAndSend
+  getOrderDetailsAndSend,
+  getUserProfile
 }
