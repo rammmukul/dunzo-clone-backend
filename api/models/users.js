@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   profilePicture: { type: String, default: null },
   currentOrder: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
   pastOrders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }],
-  jwt: { type: Array, default: null },
+  jwt: { type: Array, default: [] },
   firstSignedIn: { type: Date, default: Date() },
   recentSignedIn: { type: Date, default: Date() }
 })
