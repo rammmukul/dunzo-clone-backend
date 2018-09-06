@@ -5,7 +5,7 @@ const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { oauth2Client, oauth2, userLoginURL } = require('../../oAuth/oAuthGoogle')
 
 function serveAppropriatePage (req, res, next, jwToken, statusCode) {
-  if (req.jwt) {
+  if (req.locals.jwt) {
     if (jwToken) {
       res.cookie('access_token', jwToken, { httpOnly: true })
     }
@@ -19,10 +19,10 @@ function serveAppropriatePage (req, res, next, jwToken, statusCode) {
 
 async function placeOrder (req, res) {
   try {
-    if (req.jwt) {
+    if (req.locals.jwt) {
       let order = new Order({
         description: req.body.description,
-        user: (await User.findOne({ emailID: req.emailID }).exec())._id
+        user: (await User.findOne({ emailID: req.locals.emailID }).exec())._id
       })
       await order.save()
       //  res.redirect('http://localhost:8000/orders/showOrders')
@@ -41,12 +41,12 @@ async function handleUserInfo (req, res) {
       let userInfo = await getUserInfo()
       let jwToken = jwt.sign({name: userInfo.data.name, email: userInfo.data.email}, privateKey)
       await handleUserRecord(userInfo.data, jwToken)
-      req.jwt = jwToken
+      req.locals.jwt = jwToken
       serveAppropriatePage(req, res, null, jwToken, 200)
     }
   } catch (error) {
     console.log(error)
-    req.jwt = false
+    req.locals.jwt = false
     serveAppropriatePage(req, res, null, null, 500)
   }
 }
@@ -92,8 +92,8 @@ async function handleUserRecord (userinfo, token) {
 }
 
 async function signoutUser (req, res) {
-  if (req.jwt) {
-    let deletion = await deleteJWTValue(req.emailID, req.jwt)
+  if (req.locals.jwt) {
+    let deletion = await deleteJWTValue(req.locals.emailID, req.locals.jwt)
     if (deletion) {
       res.clearCookie('access_token', { path: '/' })
       res.status(200).json({ message: 'you have been logged out successfully, to login please click on the link', link: userLoginURL })
@@ -108,7 +108,7 @@ async function deleteJWTValue (emailID, jwt) {
   console.log(emailID)
   try {
     let dbSearchResult = await User.findOne({ emailID }).exec()
-    await User.update({ emailID }, { jwt: null })
+    await User.update({ emailID }, { jwt: dbSearchResult.filter(e => e !== jwt) })
     return true
   } catch (error) {
     return false
@@ -130,8 +130,7 @@ async function getOrdersAndSend (req, res) {
 
 async function getOrderDetailsAndSend (req, res) {
   try {
-    let orderDetails = await Order.findById(req.query.orderID).populate('user')
-    console.log(orderDetails)
+    let orderDetails = await Order.findById(req.query.orderID).exec()
     res.json({ details: orderDetails })
   } catch (err) {
     res.json({ message: 'no details found' })
