@@ -2,20 +2,20 @@ const JWT = require('jsonwebtoken')
 const Runner = require('../models/runners')
 const Order = require('../models/orders')
 const { privateKey } = require('../../secrets/jwtPrivateKey')
-const { oauth2Client, oauth2, runnerLoginURL } = require('../../oAuth/oAuthGoogle')
+const { RunnerOauth2Client, runnerOauth2, runnerLoginURL } = require('../../oAuth/oAuthGoogle')
 
 async function getAccessToken (code) {
   try {
-    let tokenObj = await oauth2Client.getToken(code)
+    let tokenObj = await RunnerOauth2Client.getToken(code)
     return tokenObj
-  } catch (error) {
+  } catch (e) {
     return null
   }
 }
 
 function getRunnerInfo () {
   return new Promise((resolve, reject) => {
-    oauth2.userinfo.v2.me.get((error, info) => {
+    runnerOauth2.userinfo.v2.me.get((error, info) => {
       if (error) {
         reject(error)
       } else {
@@ -28,16 +28,16 @@ function getRunnerInfo () {
 async function handleRunnerRecord (runnerInfo, token) {
   try {
     let dbSearchResult = await Runner.findOne({ emailID: runnerInfo.email }).exec()
-    if (!dbSearchResult.jwt.includes(token)) {
-      dbSearchResult.jwt.push(token)
+    if (!dbSearchResult) {
       let runner = new Runner({
         name: runnerInfo.name,
         emailID: runnerInfo.email,
         profilePicture: runnerInfo.picture,
-        jwt: dbSearchResult.jwt
+        jwt: [token]
       })
       return (await runner.save())
     }
+    dbSearchResult.jwt.push(token)
     return (await Runner.update({ emailID: runnerInfo.email }, { jwt: dbSearchResult.jwt, recentSignedIn: Date.now() }))
   } catch (error) {
     return new Error(error)
@@ -66,8 +66,8 @@ module.exports = {
   async oauthcallback (req, res) {
     let tokenObj = await getAccessToken(req.query.code)
     try {
-      oauth2Client.setCredentials(tokenObj.tokens)
-      let runnerInfo = await getRunnerInfo()
+      RunnerOauth2Client.setCredentials(tokenObj.tokens)
+      let runnerInfo = await getRunnerInfo().catch(console.log)
       let jwt = JWT.sign(
         {
           name: runnerInfo.data.name,
@@ -91,7 +91,7 @@ module.exports = {
     )
     res.json(result)
   },
-  async fullfillOrder (req, res) {
+  async fulfillOrder (req, res) {
     const runner = await Runner.findOne({emailID: res.locals.emailID})
     if (runner.currentOrder !== req.body.orderID) {
       return res.json({error: 'orderID does not match your assigned order'})
@@ -105,7 +105,7 @@ module.exports = {
     )
     await Order.update(
       {_id: runner.currentOrder},
-      {status: 'fullfilled'}
+      {status: 'fulfilled'}
     )
     res.json(result)
   }
