@@ -79,6 +79,7 @@ module.exports = {
         ...req.locals,
         jwt
       }
+      res.cookie('access_token', jwt)
       res.json('signedIn')
     }
     res.json('not signedIn')
