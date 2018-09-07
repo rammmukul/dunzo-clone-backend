@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/users')
 const Order = require('../models/orders')
+const Runner = require('../models/runners')
 const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { oauth2Client, oauth2, userLoginURL } = require('../../oAuth/oAuthGoogle')
 
@@ -10,12 +11,26 @@ async function placeOrder (req, res) {
       ...req.body,
       user: (await User.findOne({ emailID: req.locals.emailID }).exec())._id
     })
-    await order.save()
-    res.json(true)
-  } catch (err) {
-    console.error('err0r:', err)
+    const placed = await order.save()
+    const assigned = await assignRunner(order._id)
+    res.json({placed, assigned})
+  } catch (e) {
+    console.error('err0r:', e)
     res.json(false)
     // send message to user that order didn't get placed
+  }
+}
+
+async function assignRunner (order) {
+  try {
+    const runner = await Runner.findOneAndUpdate(
+      {currentOrder: null},
+      {currentOrder: order}
+    )
+    return runner
+  } catch (e) {
+    console.log(e)
+    return false
   }
 }
 
