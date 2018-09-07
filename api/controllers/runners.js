@@ -45,17 +45,17 @@ async function handleRunnerRecord (runnerInfo, token) {
 
 module.exports = {
   async getRunnerProfile (req, res) {
-    res.send(await Runner.findOne({emailID: req.body.emailID}))
+    res.send(await Runner.findOne({emailID: req.locals.emailID}))
   },
   async getCurrentOrder (req, res) {
     const runner = await Runner
-      .findOne({emailID: req.body.emailID})
+      .findOne({emailID: req.locals.emailID})
       .populate('currentOrder')
     res.send(runner.currentOrder)
   },
   async getPastOrders (req, res) {
     const runner = await Runner
-      .findOne({emailID: req.body.emailID})
+      .findOne({emailID: req.locals.emailID})
       .populate('pastOrders')
     res.send(runner.pastOrders)
   },
@@ -80,5 +80,25 @@ module.exports = {
     } catch (e) {
       res.json('not signedIn')
     }
+  },
+  async takeOrder (req, res) {
+    const result = await Runner.update(
+      {emailID: req.locals.emailID},
+      {
+        currentOrder: req.body.orderID
+      }
+    )
+    res.json(result)
+  },
+  async fullfillOrder (req, res) {
+    const runner = await Runner.findOne({emailID: req.locals.emailID})
+    const result = await Runner.update(
+      {emailID: req.locals.emailID},
+      {
+        currentOrder: null,
+        pastOrders: [...runner.pastOrders, runner.currentOrder]
+      }
+    )
+    res.json(result)
   }
 }
