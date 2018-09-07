@@ -93,6 +93,9 @@ module.exports = {
   },
   async fullfillOrder (req, res) {
     const runner = await Runner.findOne({emailID: res.locals.emailID})
+    if (runner.currentOrder !== req.body.orderID) {
+      return res.json({error: 'orderID does not match your assigned order'})
+    }
     const result = await Runner.update(
       {emailID: res.locals.emailID},
       {
