@@ -64,7 +64,7 @@ module.exports = {
   },
   async oauthcallback (req, res) {
     let tokenObj = await getAccessToken(req.query.code)
-    if (tokenObj) {
+    try {
       oauth2Client.setCredentials(tokenObj.tokens)
       let runnerInfo = await getRunnerInfo()
       let jwt = JWT.sign(
@@ -81,7 +81,8 @@ module.exports = {
       }
       res.cookie('access_token', jwt)
       res.json('signedIn')
+    } catch (e) {
+      res.json('not signedIn')
     }
-    res.json('not signedIn')
   }
 }
