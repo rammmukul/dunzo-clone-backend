@@ -11,10 +11,9 @@ async function authenticate (req, res, next) {
       ...req.locals,
       jwt: await checkForJWT(decodedJWT, req.cookies.access_token)
     }
-    console.log('req.locals.jwt', req.locals.jwt)
     req.locals.emailID = decodedJWT.email
     next()
-  } catch (error) {
+  } catch (e) {
     req.locals = {
       ...req.locals,
       jwt: false
@@ -23,6 +22,7 @@ async function authenticate (req, res, next) {
       return res.redirect('http://localhost:8000/runner/login')
     }
     res.redirect('http://localhost:8000/user/getLoginURL')
+    console.log(e)
   }
 }
 
@@ -37,8 +37,8 @@ async function checkForJWT (userinfo, jwToken) {
     }
   } catch (error) {
     console.log(error)
+    throw Error('jwt not in db')
   }
-  return false
 }
 
 module.exports = { authenticate }
