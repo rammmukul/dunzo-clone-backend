@@ -21,11 +21,15 @@ async function placeOrder (req, res) {
   }
 }
 
-async function assignRunner (order) {
+async function assignRunner (orderID) {
   try {
     const runner = await Runner.findOneAndUpdate(
       {currentOrder: null},
-      {currentOrder: order}
+      {currentOrder: orderID}
+    )
+    await Order.update(
+      {_id: orderID},
+      {status: 'assigned'}
     )
     return runner
   } catch (e) {

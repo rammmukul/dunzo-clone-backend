@@ -1,5 +1,6 @@
 const JWT = require('jsonwebtoken')
 const Runner = require('../models/runners')
+const Order = require('../models/orders')
 const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { oauth2Client, oauth2, runnerLoginURL } = require('../../oAuth/oAuthGoogle')
 
@@ -98,6 +99,10 @@ module.exports = {
         currentOrder: null,
         pastOrders: [...runner.pastOrders, runner.currentOrder]
       }
+    )
+    await Order.update(
+      {_id: runner.currentOrder},
+      {status: 'fullfilled'}
     )
     res.json(result)
   }
