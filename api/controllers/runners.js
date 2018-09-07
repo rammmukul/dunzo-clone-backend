@@ -46,17 +46,17 @@ async function handleRunnerRecord (runnerInfo, token) {
 
 module.exports = {
   async getRunnerProfile (req, res) {
-    res.send(await Runner.findOne({emailID: req.locals.emailID}))
+    res.send(await Runner.findOne({emailID: res.locals.emailID}))
   },
   async getCurrentOrder (req, res) {
     const runner = await Runner
-      .findOne({emailID: req.locals.emailID})
+      .findOne({emailID: res.locals.emailID})
       .populate('currentOrder')
     res.send(runner.currentOrder)
   },
   async getPastOrders (req, res) {
     const runner = await Runner
-      .findOne({emailID: req.locals.emailID})
+      .findOne({emailID: res.locals.emailID})
       .populate('pastOrders')
     res.send(runner.pastOrders)
   },
@@ -84,7 +84,7 @@ module.exports = {
   },
   async takeOrder (req, res) {
     const result = await Runner.update(
-      {emailID: req.locals.emailID},
+      {emailID: res.locals.emailID},
       {
         currentOrder: req.body.orderID
       }
@@ -92,9 +92,9 @@ module.exports = {
     res.json(result)
   },
   async fullfillOrder (req, res) {
-    const runner = await Runner.findOne({emailID: req.locals.emailID})
+    const runner = await Runner.findOne({emailID: res.locals.emailID})
     const result = await Runner.update(
-      {emailID: req.locals.emailID},
+      {emailID: res.locals.emailID},
       {
         currentOrder: null,
         pastOrders: [...runner.pastOrders, runner.currentOrder]

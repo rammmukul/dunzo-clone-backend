@@ -9,7 +9,7 @@ async function placeOrder (req, res) {
   try {
     let order = new Order({
       ...req.body,
-      user: (await User.findOne({ emailID: req.locals.emailID }).exec())._id
+      user: (await User.findOne({ emailID: res.locals.emailID }).exec())._id
     })
     const placed = await order.save()
     const assigned = await assignRunner(order._id)
@@ -95,8 +95,8 @@ async function handleUserRecord (userinfo, token) {
 }
 
 async function signoutUser (req, res) {
-  if (req.locals && req.locals.jwt) {
-    let deletion = await deleteJWTValue(req.locals.emailID, req.locals.jwt)
+  if (res.locals.jwt) {
+    let deletion = await deleteJWTValue(res.locals.emailID, res.locals.jwt)
     if (deletion) {
       res.clearCookie('access_token', { path: '/' })
       res.status(200).json({ message: 'you have been logged out successfully, to login please click on the link', link: userLoginURL })
@@ -142,8 +142,9 @@ async function getOrderDetailsAndSend (req, res) {
 }
 
 async function getUserProfile (req, res) {
+  console.log(res.locals, res.locals)
   try {
-    let user = await User.find({emailID: req.locals.emailID})
+    let user = await User.find({emailID: res.locals.emailID})
     res.json(user)
   } catch (e) {
     console.log(e)

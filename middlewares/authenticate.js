@@ -7,17 +7,11 @@ async function authenticate (req, res, next) {
   let {baseUrl} = req
   try {
     let decodedJWT = jwt.verify(req.cookies.access_token, privateKey)
-    req.locals = {
-      ...req.locals,
-      jwt: await checkForJWT(decodedJWT, req.cookies.access_token)
-    }
-    req.locals.emailID = decodedJWT.email
+    res.locals.jwt = await checkForJWT(decodedJWT, req.cookies.access_token)
+    res.locals.emailID = decodedJWT.email
     next()
   } catch (e) {
-    req.locals = {
-      ...req.locals,
-      jwt: false
-    }
+    res.locals.jwt = false
     if (baseUrl.startsWith('/runner')) {
       return res.redirect('http://localhost:8000/runner/login')
     }

@@ -19,7 +19,7 @@ app.use('/user', usersRoute)
 app.use('/runner', runnersRoute)
 
 const homePageHandler = (req, res, next) => {
-  if (req.locals && req.locals.jwt) {
+  if (res.locals.jwt) {
     return res.redirect('http://localhost:8000/user/placeorder')
   }
   res.redirect('http://localhost:8000/user/getLoginURL')
