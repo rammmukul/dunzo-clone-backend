@@ -4,14 +4,6 @@ const Order = require('../models/orders')
 const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { oauth2Client, oauth2, userLoginURL } = require('../../oAuth/oAuthGoogle')
 
-function setCookie (req, res, next, jwToken, statusCode) {
-  try {
-    res.cookie('access_token', req.locals.jwt)
-  } catch (e) {
-    res.status(200).json({ link: userLoginURL })
-  }
-}
-
 async function placeOrder (req, res) {
   try {
     let order = new Order({
@@ -151,7 +143,6 @@ module.exports = {
   oauthcallback,
   placeOrder,
   signoutUser,
-  setCookie,
   getLoginURLAndSend,
   getOrdersAndSend,
   getOrderDetailsAndSend,
