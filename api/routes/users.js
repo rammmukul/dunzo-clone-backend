@@ -11,6 +11,6 @@ router.get('/getOrders', authenticate, usersController.getOrdersAndSend)
 router.get('/getOrderDetails', authenticate, usersController.getOrderDetailsAndSend)
 router.get('/signout', authenticate, usersController.signoutUser)
 router.post('/placeorder', authenticate, usersController.placeOrder)
-router.post('/profile', authenticate, usersController.getUserProfile)
+router.get('/profile', authenticate, usersController.getUserProfile)
 
 module.exports = router
