@@ -75,10 +75,6 @@ module.exports = {
         privateKey
       )
       await handleRunnerRecord(runnerInfo.data, jwt)
-      req.locals = {
-        ...req.locals,
-        jwt
-      }
       res.cookie('access_token', jwt)
       res.json('signedIn')
     } catch (e) {

@@ -27,19 +27,11 @@ async function oauthcallback (req, res) {
       let userInfo = await getUserInfo().catch(console.log)
       let jwToken = jwt.sign({name: userInfo.data.name, email: userInfo.data.email}, privateKey)
       await handleUserRecord(userInfo.data, jwToken)
-      req.locals = {
-        ...req.locals,
-        jwt: jwToken
-      }
       res.cookie('access_token', jwToken)
       res.json('login successful')
     }
   } catch (error) {
     console.log(error)
-    req.locals = {
-      ...req.locals,
-      jwt: false
-    }
   }
 }
 
