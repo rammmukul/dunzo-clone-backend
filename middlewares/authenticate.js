@@ -4,6 +4,7 @@ const Runner = require('../api/models/runners')
 const { privateKey } = require('../secrets/jwtPrivateKey')
 
 async function authenticate (req, res, next) {
+  let {baseUrl} = req
   try {
     let decodedJWT = jwt.verify(req.cookies.access_token, privateKey)
     req.locals = {
@@ -17,6 +18,9 @@ async function authenticate (req, res, next) {
     req.locals = {
       ...req.locals,
       jwt: false
+    }
+    if (baseUrl.startsWith('/runner')) {
+      return res.redirect('http://localhost:8000/runner/login')
     }
     res.redirect('http://localhost:8000/user/getLoginURL')
   }
