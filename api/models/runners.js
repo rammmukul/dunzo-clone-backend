@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const coord = require('../schema/location')
 
 const runnerSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -8,7 +9,8 @@ const runnerSchema = new mongoose.Schema({
   pastOrders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }],
   jwt: { type: Array, default: null },
   firstSignedIn: { type: Date, default: null },
-  recentSignedIn: { type: Date, default: null }
+  recentSignedIn: { type: Date, default: null },
+  location: {type: coord}
 })
 
 module.exports = mongoose.model('Runner', runnerSchema)

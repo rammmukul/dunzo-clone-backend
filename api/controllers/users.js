@@ -6,13 +6,22 @@ const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { oauth2Client, oauth2, userLoginURL } = require('../../oAuth/oAuthGoogle')
 
 async function placeOrder (req, res) {
+  const orderBody = {
+    description: req.body.description,
+    from: Array.isArray(req.body.from)
+      ? {coordinates: req.body.from}
+      : req.body.from,
+    to: Array.isArray(req.body.to)
+      ? {coordinates: req.body.to}
+      : req.body.to
+  }
   try {
     let order = new Order({
-      ...req.body,
+      ...orderBody,
       user: (await User.findOne({ emailID: res.locals.emailID }).exec())._id
     })
     const placed = await order.save()
-    const assigned = await assignRunner(order._id)
+    const assigned = await assignRunner(order)
     res.json({placed, assigned})
   } catch (e) {
     console.error('err0r:', e)
@@ -21,14 +30,16 @@ async function placeOrder (req, res) {
   }
 }
 
-async function assignRunner (orderID) {
+async function assignRunner (order) {
   try {
     const runner = await Runner.findOneAndUpdate(
       {currentOrder: null},
-      {currentOrder: orderID}
+      {currentOrder: order.id}
     )
+      .where('location')
+      .near({center: order.from.coordinates, spherical: true})
     await Order.update(
-      {_id: orderID},
+      {_id: order.id},
       {status: 'assigned'}
     )
     return runner
@@ -87,8 +98,7 @@ async function handleUserRecord (userinfo, token) {
       })
       return (await user.save())
     }
-    dbSearchResult.jwt.push(token)
-    return (await User.update({ emailID: userinfo.email }, { jwt: dbSearchResult.jwt, recentSignedIn: Date.now() }))
+    return (await User.update({ emailID: userinfo.email }, { $push: {jwt: token}, recentSignedIn: Date.now() }))
   } catch (error) {
     return new Error(error)
   }
