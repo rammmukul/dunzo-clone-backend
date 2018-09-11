@@ -37,8 +37,7 @@ async function handleRunnerRecord (runnerInfo, token) {
       })
       return (await runner.save())
     }
-    dbSearchResult.jwt.push(token)
-    return (await Runner.update({ emailID: runnerInfo.email }, { jwt: dbSearchResult.jwt, recentSignedIn: Date.now() }))
+    return (await Runner.update({ emailID: runnerInfo.email }, { $push: {jwt: token}, recentSignedIn: Date.now() }))
   } catch (error) {
     return new Error(error)
   }
@@ -84,7 +83,10 @@ module.exports = {
   },
   async takeOrder (req, res) {
     const result = await Runner.update(
-      {emailID: res.locals.emailID},
+      {
+        emailID: res.locals.emailID,
+        currentOrder: null
+      },
       {
         currentOrder: req.body.orderID
       }
@@ -92,9 +94,12 @@ module.exports = {
     res.json(result)
   },
   async fulfillOrder (req, res) {
-    const runner = await Runner.findOne({emailID: res.locals.emailID})
-    if (runner.currentOrder !== req.body.orderID) {
-      return res.json({error: 'orderID does not match your assigned order'})
+    const runner = await Runner.findOne({
+      emailID: res.locals.emailID,
+      currentOrder: req.body.orderID
+    })
+    if (!runner) {
+      return res.json({error: 'order not assigned to you or allready fulfilled'})
     }
     const result = await Runner.update(
       {emailID: res.locals.emailID},
