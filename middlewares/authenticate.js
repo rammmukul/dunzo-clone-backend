@@ -25,7 +25,6 @@ async function checkForJWT (userinfo, jwToken) {
     let searchResult =
       await User.findOne({ emailID: userinfo.email }).exec() ||
       await Runner.findOne({ emailID: userinfo.email }).exec()
-    console.log('searchResult', searchResult)
     if (searchResult && searchResult.jwt.includes(jwToken)) {
       return jwToken
     }
