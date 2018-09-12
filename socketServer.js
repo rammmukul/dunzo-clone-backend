@@ -3,6 +3,7 @@ const io = require('socket.io')(http)
 const JWT = require('jsonwebtoken')
 const { privateKey } = require('./secrets/jwtPrivateKey')
 const haversine = require('haversine')
+const Runners = require('./api/models/runners')
 
 const runnerPos = {}
 
@@ -19,10 +20,11 @@ io.on('connection', async function (socket) {
 
   socket.on('position update', (pos) => {
     if (
-      !runnerPos[user] ||
-      !haversine(runnerPos[user], pos, {unit: 'meter', format: '[lon,lat]', threshold: 10})
+      !runnerPos[user.email] ||
+      !haversine(runnerPos[user.email], pos, {unit: 'meter', format: '[lon,lat]', threshold: 10})
     ) {
-      runnerPos[user] = pos
+      runnerPos[user.email] = pos
+      Runners.update({emailID: user.email}, {location: pos})
     }
   })
   socket.on('disconnect', () => console.log('no more'))
