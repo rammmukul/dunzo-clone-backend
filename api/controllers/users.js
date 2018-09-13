@@ -55,7 +55,11 @@ async function oauthcallback (req, res) {
     if (tokenObj) {
       oauth2Client.setCredentials(tokenObj.tokens)
       let userInfo = await getUserInfo().catch(console.log)
-      let jwToken = jwt.sign({name: userInfo.data.name, email: userInfo.data.email}, privateKey)
+      let jwToken = jwt.sign({
+        name: userInfo.data.name,
+        email: userInfo.data.email,
+        type: 'user'
+      }, privateKey)
       await handleUserRecord(userInfo.data, jwToken)
       res.cookie('access_token', jwToken)
       res.json('login successful')

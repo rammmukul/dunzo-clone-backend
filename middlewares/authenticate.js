@@ -23,8 +23,9 @@ async function authenticate (req, res, next) {
 async function checkForJWT (userinfo, jwToken) {
   try {
     let searchResult =
-      await User.findOne({ emailID: userinfo.email }).exec() ||
-      await Runner.findOne({ emailID: userinfo.email }).exec()
+      userinfo.type === 'user'
+        ? await User.findOne({ emailID: userinfo.email }).exec()
+        : await Runner.findOne({ emailID: userinfo.email }).exec()
     if (searchResult && searchResult.jwt.includes(jwToken)) {
       return jwToken
     }

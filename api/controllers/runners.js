@@ -70,7 +70,8 @@ module.exports = {
       let jwt = JWT.sign(
         {
           name: runnerInfo.data.name,
-          email: runnerInfo.data.email
+          email: runnerInfo.data.email,
+          type: 'runner'
         },
         privateKey
       )
