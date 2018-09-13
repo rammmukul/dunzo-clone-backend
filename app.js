@@ -19,6 +19,7 @@ app.use('/user', usersRoute)
 app.use('/runner', runnersRoute)
 
 const homePageHandler = (req, res, next) => {
+  let {baseUrl} = req
   if (res.locals.jwt) {
     if (baseUrl.startsWith('/runner')) {
       return res.redirect('http://localhost:8080/runner.html')
