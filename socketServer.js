@@ -10,12 +10,14 @@ const runnerPos = {}
 
 io.on('connection', async function (socket) {
   let user
-  {
+  try {
     const jwt = socket.request.headers.cookie.split(';')
       .map(e => e.trim())
       .filter(e => e.startsWith('access_token='))[0]
       .substring(13)
     user = await JWT.verify(jwt, privateKey)
+  } catch (e) {
+    console.log('somthing wrong with jwt', e)
   }
 
   socket.on('position update', async (pos) => {

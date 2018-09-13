@@ -108,7 +108,7 @@ module.exports = {
     if (res.locals.jwt) {
       let deletion = await deleteJWTValue(res.locals.emailID, res.locals.jwt)
       if (deletion) {
-        res.clearCookie('access_token', { path: '/' })
+        res.clearCookie('access_token')
         res.redirect('http://localhost:8080/runner.html#/login')
       } else {
         res.status(500).json({ message: 'logged out operation was unsuccessfull' })
