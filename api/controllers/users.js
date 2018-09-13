@@ -13,7 +13,9 @@ async function placeOrder (req, res) {
       : req.body.from,
     to: Array.isArray(req.body.to)
       ? {coordinates: req.body.to}
-      : req.body.to
+      : req.body.to,
+    fromAddr: req.body.fromAddr,
+    toAddr: req.body.toAddr
   }
   try {
     let order = new Order({
@@ -43,7 +45,7 @@ async function assignRunner (order) {
       {_id: order.id},
       {status: 'assigned', runner: runner._id}
     )
-    return runner
+    return true
   } catch (e) {
     console.log(e)
     return false
