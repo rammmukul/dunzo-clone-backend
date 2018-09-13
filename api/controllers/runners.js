@@ -97,9 +97,10 @@ module.exports = {
         },
         privateKey
       )
-      await handleRunnerRecord(runnerInfo.data, jwt)
+      const runner = await handleRunnerRecord(runnerInfo.data, jwt)
       res.cookie('access_token', jwt)
       res.redirect('http://localhost:8080/runner.html')
+      takeNewOrder(runner._id)
     } catch (e) {
       return res.redirect('http://localhost:8080/runner.html#/login')
     }
