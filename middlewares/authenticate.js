@@ -13,9 +13,9 @@ async function authenticate (req, res, next) {
   } catch (e) {
     res.locals.jwt = false
     if (baseUrl.startsWith('/runner')) {
-      return res.redirect('http://localhost:8000/runner/login')
+      return res.redirect('http://localhost:8080/runner.html#/login')
     }
-    res.redirect('http://localhost:8000/user/getLoginURL')
+    res.redirect('http://localhost:8080/login')
     console.log(e)
   }
 }
