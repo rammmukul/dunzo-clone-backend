@@ -43,6 +43,17 @@ async function handleRunnerRecord (runnerInfo, token) {
   }
 }
 
+async function deleteJWTValue (emailID, jwt) {
+  try {
+    let dbSearchResult = await Runner.findOne({ emailID }).exec()
+    await Runner.update({ emailID }, { jwt: dbSearchResult.jwt.filter(e => e !== jwt) })
+    return true
+  } catch (error) {
+    console.log(error)
+    return false
+  }
+}
+
 module.exports = {
   async getRunnerProfile (req, res) {
     res.send(await Runner.findOne({emailID: res.locals.emailID}))
@@ -80,6 +91,19 @@ module.exports = {
       res.json('signedIn')
     } catch (e) {
       res.json('not signedIn')
+    }
+  },
+  async signoutRunner (req, res) {
+    if (res.locals.jwt) {
+      let deletion = await deleteJWTValue(res.locals.emailID, res.locals.jwt)
+      if (deletion) {
+        res.clearCookie('access_token', { path: '/' })
+        res.redirect('http://localhost:8080/runner.html#/login')
+      } else {
+        res.status(500).json({ message: 'logged out operation was unsuccessfull' })
+      }
+    } else {
+      res.redirect('http://localhost:8080/runner.html#/login')
     }
   },
   async takeOrder (req, res) {

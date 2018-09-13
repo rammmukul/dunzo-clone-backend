@@ -4,6 +4,7 @@ const { authenticate } = require('../../middlewares/authenticate')
 
 router.get('/login', runnersController.getLoginUrl)
 router.get('/oauthcallback', runnersController.oauthcallback)
+router.get('/signout', runnersController.signoutRunner)
 router.get('/profile', authenticate, runnersController.getRunnerProfile)
 router.get('/currentOrder', authenticate, runnersController.getCurrentOrder)
 router.get('/pastOrders', authenticate, runnersController.getPastOrders)
