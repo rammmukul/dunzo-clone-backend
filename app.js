@@ -24,12 +24,12 @@ const homePageHandler = (req, res, next) => {
     if (baseUrl.startsWith('/runner')) {
       return res.redirect('http://localhost:8080/runner.html')
     }
-    return res.redirect('http://localhost:8000/user/placeorder')
+    return res.redirect('http://localhost:8080/')
   }
   if (baseUrl.startsWith('/runner')) {
     return res.redirect('http://localhost:8080/runner.html#/login')
   }
-  res.redirect('http://localhost:8000/user/getLoginURL')
+  res.redirect('http://localhost:8080/login')
 }
 app.get('/', authenticate, homePageHandler)
 
