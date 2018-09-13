@@ -55,7 +55,7 @@ async function deleteJWTValue (emailID, jwt) {
 }
 
 async function takeNewOrder (runner) {
-  const order = Order.update(
+  const order = await Order.findOneAndUpdate(
     {status: 'placed'},
     {status: 'assigned', runner: runner._id}
   )
@@ -131,6 +131,7 @@ module.exports = {
     res.json(result)
   },
   async fulfillOrder (req, res) {
+    console.log('locals', res.locals)
     const runner = await Runner.findOne({
       emailID: res.locals.emailID,
       currentOrder: req.body.orderID
@@ -138,14 +139,14 @@ module.exports = {
     if (!runner) {
       return res.json({error: 'order not assigned to you or allready fulfilled'})
     }
-    const result = await Runner.update(
+    await Runner.findOneAndUpdate(
       {emailID: res.locals.emailID},
       {
         currentOrder: null,
         pastOrders: [...runner.pastOrders, runner.currentOrder]
       }
     )
-    await Order.update(
+    const result = await Order.findOneAndUpdate(
       {_id: runner.currentOrder},
       {status: 'fulfilled'}
     )
