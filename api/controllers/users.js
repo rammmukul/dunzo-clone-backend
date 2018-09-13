@@ -40,7 +40,7 @@ async function assignRunner (order) {
       .near({center: order.from.coordinates, spherical: true})
     await Order.update(
       {_id: order.id},
-      {status: 'assigned'}
+      {status: 'assigned', runner: runner._id}
     )
     return runner
   } catch (e) {
@@ -123,7 +123,6 @@ async function signoutUser (req, res) {
 }
 
 async function deleteJWTValue (emailID, jwt) {
-  console.log(emailID)
   try {
     let dbSearchResult = await User.findOne({ emailID }).exec()
     await User.update({ emailID }, { jwt: dbSearchResult.jwt.filter(e => e !== jwt) })
@@ -157,7 +156,6 @@ async function getOrderDetailsAndSend (req, res) {
 }
 
 async function getUserProfile (req, res) {
-  console.log(res.locals, res.locals)
   try {
     let user = await User.find({emailID: res.locals.emailID})
     res.json(user)
