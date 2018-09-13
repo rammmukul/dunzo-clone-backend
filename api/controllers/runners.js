@@ -150,5 +150,8 @@ module.exports = {
     )
     res.json(result)
     takeNewOrder(runner)
+  },
+  redirectToCurrentOrder (req, res) {
+    res.redirect('http://localhost:8080/runner.html#/showcurrentassignment')
   }
 }
