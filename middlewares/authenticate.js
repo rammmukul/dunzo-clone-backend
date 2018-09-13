@@ -6,8 +6,8 @@ const { privateKey } = require('../secrets/jwtPrivateKey')
 async function authenticate (req, res, next) {
   let {baseUrl} = req
   try {
-    let decodedJWT = jwt.verify(req.cookies.access_token, privateKey)
-    res.locals.jwt = await checkForJWT(decodedJWT, req.cookies.access_token)
+    let decodedJWT = jwt.verify(req.cookies.access_token || req.headers.authorization, privateKey)
+    res.locals.jwt = await checkForJWT(decodedJWT, req.cookies.access_token || req.headers.authorization)
     res.locals.emailID = decodedJWT.email
     next()
   } catch (e) {
