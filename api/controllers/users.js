@@ -20,12 +20,13 @@ async function placeOrder (req, res) {
       ...orderBody,
       user: (await User.findOne({ emailID: res.locals.emailID }).exec())._id
     })
-    const placed = await order.save()
-    const assigned = await assignRunner(order)
-    res.json({placed, assigned})
+    await order.save()
+    await assignRunner(order)
+    await Order.findById(order._id)
+    res.json({status: true})
   } catch (e) {
     console.error('err0r:', e)
-    res.json(false)
+    res.json({status: false})
     // send message to user that order didn't get placed
   }
 }
