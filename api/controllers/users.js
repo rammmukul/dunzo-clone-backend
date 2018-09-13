@@ -39,8 +39,8 @@ async function assignRunner (order) {
       {currentOrder: null},
       {currentOrder: order.id}
     )
-      .where('location')
-      .near({center: order.from.coordinates, spherical: true})
+    // .where('location')
+    // .near({center: order.from.coordinates, spherical: true})
     await Order.update(
       {_id: order.id},
       {status: 'assigned', runner: runner._id}
