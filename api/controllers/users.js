@@ -116,12 +116,12 @@ async function signoutUser (req, res) {
     let deletion = await deleteJWTValue(res.locals.emailID, res.locals.jwt)
     if (deletion) {
       res.clearCookie('access_token', { path: '/' })
-      res.status(200).json({ message: 'you have been logged out successfully, to login please click on the link', link: userLoginURL })
+      res.redirect('http://localhost:8080/login')
     } else {
       res.status(500).json({ message: 'logged out operation was unsuccessfull' })
     }
   } else {
-    res.status(401).json({ message: 'you are not logged in and you can login by clicking on the link', link: userLoginURL })
+    res.redirect('http://localhost:8080/login')
   }
 }
 
