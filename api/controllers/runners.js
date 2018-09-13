@@ -88,9 +88,9 @@ module.exports = {
       )
       await handleRunnerRecord(runnerInfo.data, jwt)
       res.cookie('access_token', jwt)
-      res.json('signedIn')
+      res.redirect('http://localhost:8080/runner.html#/login')
     } catch (e) {
-      res.json('not signedIn')
+      return res.redirect('http://localhost:8080/runner.html')
     }
   },
   async signoutRunner (req, res) {

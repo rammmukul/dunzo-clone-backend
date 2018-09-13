@@ -65,9 +65,10 @@ async function oauthcallback (req, res) {
       }, privateKey)
       await handleUserRecord(userInfo.data, jwToken)
       res.cookie('access_token', jwToken)
-      res.json('login successful')
+      res.redirect('http://localhost:8080/')
     }
   } catch (error) {
+    res.redirect('http://localhost:8080/login')
     console.log(error)
   }
 }
