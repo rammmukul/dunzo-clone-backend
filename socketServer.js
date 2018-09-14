@@ -33,16 +33,16 @@ io.on('connection', async function (socket) {
     socket.on('join chat room', async (orderID) => {
       runnerAssigned = (await Orders.findOne({_id: orderID, status: 'assigned'}).populate('runner')).runner
       socket.join(runnerAssigned.email + orderID)
-      messages[runnerAssigned.email + orderID] = {
+      messages[runnerAssigned.email + orderID] = [
         ...messages[runnerAssigned.email + orderID]
-      }
+      ]
       socket.emit('past messages', messages[runnerAssigned.email + orderID])
     })
 
     socket.on('chat message', async ([orderID, message]) => {
       const msgObj = {from: 'runner', message}
       socket.to(runnerAssigned.email + orderID).emit('chat message', msgObj)
-      messages[runnerAssigned.email + orderID] = msgObj
+      messages[runnerAssigned.email + orderID].push(msgObj)
     })
   } else {
     socket.on('position update', async (pos) => {
@@ -60,16 +60,16 @@ io.on('connection', async function (socket) {
 
     socket.on('join chat room', async (orderID) => {
       socket.join(user.email + orderID)
-      messages[user.email + orderID] = {
+      messages[user.email + orderID] = [
         ...messages[user.email + orderID]
-      }
+      ]
       socket.emit('past messages', messages[user.email + orderID])
     })
 
     socket.on('chat message', async ([orderID, message]) => {
       const msgObj = {from: 'user', message}
       socket.to(user.email + orderID).emit('chat message', msgObj)
-      messages[user.email + orderID] = msgObj
+      messages[user.email + orderID].push(msgObj)
     })
   }
 
