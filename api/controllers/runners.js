@@ -37,7 +37,7 @@ async function handleRunnerRecord (runnerInfo, token) {
       })
       return (await runner.save())
     }
-    return (await Runner.update({ emailID: runnerInfo.email }, { $push: {jwt: token}, recentSignedIn: Date.now() }))
+    return (await Runner.findOneAndUpdate({ emailID: runnerInfo.email }, { $push: {jwt: token}, recentSignedIn: Date.now() }))
   } catch (error) {
     return new Error(error)
   }
@@ -46,7 +46,7 @@ async function handleRunnerRecord (runnerInfo, token) {
 async function deleteJWTValue (emailID, jwt) {
   try {
     let dbSearchResult = await Runner.findOne({ emailID }).exec()
-    await Runner.update({ emailID }, { jwt: dbSearchResult.jwt.filter(e => e !== jwt) })
+    await Runner.findOneAndUpdate({ emailID }, { jwt: dbSearchResult.jwt.filter(e => e !== jwt) })
     return true
   } catch (error) {
     console.log(error)
@@ -59,7 +59,7 @@ async function takeNewOrder (runner) {
     {status: 'placed'},
     {status: 'assigned', runner: runner._id}
   )
-  await Runner.update(
+  await Runner.findOneAndUpdate(
     {_id: runner._id},
     {currentOrder: order._id}
   )
@@ -119,7 +119,7 @@ module.exports = {
     }
   },
   async takeOrder (req, res) {
-    const result = await Runner.update(
+    const result = await Runner.findOneAndUpdate(
       {
         emailID: res.locals.emailID,
         currentOrder: null

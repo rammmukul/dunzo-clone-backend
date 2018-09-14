@@ -51,7 +51,7 @@ io.on('connection', async function (socket) {
         !haversine(runnerPos[user.email].pos, pos, {unit: 'meter', format: '[lon,lat]', threshold: 10})
       ) {
         runnerPos[user.email] = {...runnerPos[user.email], pos}
-        await Runners.update({emailID: user.email}, {location: {coordinates: pos}})
+        await Runners.findOneAndUpdate({emailID: user.email}, {location: {coordinates: pos}})
       }
 
       const sendPosTo = runnerPos[user.email].socket

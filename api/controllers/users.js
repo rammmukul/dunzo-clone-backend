@@ -41,7 +41,7 @@ async function assignRunner (order) {
     )
     // .where('location')
     // .near({center: order.from.coordinates, spherical: true})
-    await Order.update(
+    await Order.findOneAndUpdate(
       {_id: order.id},
       {status: 'assigned', runner: runner._id}
     )
@@ -106,7 +106,7 @@ async function handleUserRecord (userinfo, token) {
       })
       return (await user.save())
     }
-    return (await User.update({ emailID: userinfo.email }, { $push: {jwt: token}, recentSignedIn: Date.now() }))
+    return (await User.findOneAndUpdate({ emailID: userinfo.email }, { $push: {jwt: token}, recentSignedIn: Date.now() }))
   } catch (error) {
     return new Error(error)
   }
@@ -129,7 +129,7 @@ async function signoutUser (req, res) {
 async function deleteJWTValue (emailID, jwt) {
   try {
     let dbSearchResult = await User.findOne({ emailID }).exec()
-    await User.update({ emailID }, { jwt: dbSearchResult.jwt.filter(e => e !== jwt) })
+    await User.findOneAndUpdate({ emailID }, { jwt: dbSearchResult.jwt.filter(e => e !== jwt) })
     return true
   } catch (error) {
     console.log(error)
