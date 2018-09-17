@@ -34,7 +34,7 @@ io.on('connection', async function (socket) {
       runnerAssigned = (await Orders.findOne({_id: orderID, status: 'assigned'}).populate('runner')).runner
       socket.join(runnerAssigned.email + orderID)
       messages[runnerAssigned.email + orderID] = [
-        ...messages[runnerAssigned.email + orderID]
+        ...messages[runnerAssigned.email + orderID] || []
       ]
       socket.emit('past messages', messages[runnerAssigned.email + orderID])
     })
@@ -61,7 +61,7 @@ io.on('connection', async function (socket) {
     socket.on('join chat room', async (orderID) => {
       socket.join(user.email + orderID)
       messages[user.email + orderID] = [
-        ...messages[user.email + orderID]
+        ...messages[user.email + orderID] || []
       ]
       socket.emit('past messages', messages[user.email + orderID])
     })
