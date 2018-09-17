@@ -1,15 +1,23 @@
-const router = require('express').Router()
+const express = require('express')
 const runnersController = require('../controllers/runners')
 const { authenticate } = require('../../middlewares/authenticate')
 
+const router = express.Router()
+const authenticatedRouter = express.Router()
+
+// doesn't need authentication middleware
 router.get('/login', runnersController.getLoginUrl)
 router.get('/oauthcallback', runnersController.oauthcallback)
-router.get('/signout', authenticate, runnersController.signoutRunner)
-router.get('/profile', authenticate, runnersController.getRunnerProfile)
-router.get('/currentOrder', authenticate, runnersController.getCurrentOrder)
-router.get('/', authenticate, runnersController.redirectToCurrentOrder)
-router.get('/pastOrders', authenticate, runnersController.getPastOrders)
-router.post('/takeorder', authenticate, runnersController.takeOrder)
-router.post('/fulfillorder', authenticate, runnersController.fulfillOrder)
 
+// Needs authentication middleware
+authenticatedRouter.use(authenticate)
+authenticatedRouter.get('/signout', runnersController.signoutRunner)
+authenticatedRouter.get('/profile', runnersController.getRunnerProfile)
+authenticatedRouter.get('/currentOrder', runnersController.getCurrentOrder)
+authenticatedRouter.get('/', runnersController.redirectToCurrentOrder)
+authenticatedRouter.get('/pastOrders', runnersController.getPastOrders)
+authenticatedRouter.post('/takeorder', runnersController.takeOrder)
+authenticatedRouter.post('/fulfillorder', runnersController.fulfillOrder)
+
+router.use(authenticatedRouter)
 module.exports = router
