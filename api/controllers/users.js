@@ -2,8 +2,13 @@ const jwt = require('jsonwebtoken')
 const User = require('../models/users')
 const Order = require('../models/orders')
 const Runner = require('../models/runners')
+const { RunnerEvents } = require('./runners')
 const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { oauth2Client, oauth2, userLoginURL } = require('../../oAuth/oAuthGoogle')
+const EventEmitter = require('events')
+
+const UserEvents = new EventEmitter()
+UserEvents.on('runner assigned', (order, user) => console.log(`runner assigned to ${order} of ${user}`))
 
 async function placeOrder (req, res) {
   const orderBody = {
@@ -23,8 +28,7 @@ async function placeOrder (req, res) {
       user: (await User.findOne({ emailID: res.locals.emailID }).exec())._id
     })
     await order.save()
-    await assignRunner(order)
-    await Order.findById(order._id)
+    RunnerEvents.emit('new order', order)
     res.json({status: true})
   } catch (e) {
     console.error('err0r:', e)
@@ -32,6 +36,8 @@ async function placeOrder (req, res) {
     // send message to user that order didn't get placed
   }
 }
+
+RunnerEvents.on('new order', assignRunner)
 
 async function assignRunner (order) {
   try {
@@ -41,10 +47,12 @@ async function assignRunner (order) {
     )
     // .where('location')
     // .near({center: order.from.coordinates, spherical: true})
-    await Order.findOneAndUpdate(
+    const result = await Order.findOneAndUpdate(
       {_id: order.id},
       {status: 'assigned', runner: runner._id}
     )
+    const user = result.user
+    UserEvents.emit('runner assigned', order._id, user)
     return true
   } catch (e) {
     console.log(e)
@@ -175,5 +183,6 @@ module.exports = {
   getLoginURLAndSend,
   getOrdersAndSend,
   getOrderDetailsAndSend,
-  getUserProfile
+  getUserProfile,
+  UserEvents
 }
