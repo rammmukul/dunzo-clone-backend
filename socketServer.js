@@ -21,6 +21,8 @@ io.on('connection', async function (socket) {
     console.log('somthing wrong with jwt', e)
   }
 
+  if (!user) return false
+
   if (user.type === 'user') {
     let runnerAssigned
     socket.on('position request', async (order) => {
