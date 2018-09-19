@@ -9,6 +9,7 @@ const { authenticate } = require('./middlewares/authenticate')
 
 const usersRoute = require('./api/routes/users')
 const runnersRoute = require('./api/routes/runners')
+const notificationsRoute = require('./api/routes/notifications')
 
 app.use(cors())
 app.use(morgan('dev'))
@@ -17,6 +18,7 @@ app.use(cookieParser())
 
 app.use('/user', usersRoute)
 app.use('/runner', runnersRoute)
+app.use('/', notificationsRoute)
 
 const homePageHandler = (req, res, next) => {
   let {baseUrl} = req

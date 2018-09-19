@@ -8,6 +8,7 @@ async function authenticate (req, res, next) {
     let decodedJWT = jwt.verify(req.cookies.access_token || req.headers.authorization, privateKey)
     res.locals.jwt = await checkForJWT(decodedJWT, req.cookies.access_token || req.headers.authorization)
     res.locals.emailID = decodedJWT.email
+    res.locals.decodedJWT = decodedJWT
     next()
   } catch (e) {
     res.locals.jwt = false
