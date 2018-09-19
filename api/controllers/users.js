@@ -76,7 +76,7 @@ async function oauthcallback (req, res) {
       res.redirect('http://localhost:8080/')
     }
   } catch (error) {
-    res.redirect('http://localhost:8080/login')
+    res.redirect('http://localhost:8080/#/login')
     console.log(error)
   }
 }
@@ -125,12 +125,12 @@ async function signoutUser (req, res) {
     let deletion = await deleteJWTValue(res.locals.emailID, res.locals.jwt)
     if (deletion) {
       res.clearCookie('access_token', { path: '/' })
-      res.redirect('http://localhost:8080/login')
+      res.redirect('http://localhost:8080/#/login')
     } else {
       res.status(500).json({ message: 'logged out operation was unsuccessfull' })
     }
   } else {
-    res.redirect('http://localhost:8080/login')
+    res.redirect('http://localhost:8080/#/login')
   }
 }
 

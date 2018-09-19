@@ -29,7 +29,7 @@ const homePageHandler = (req, res, next) => {
   if (baseUrl.startsWith('/runner')) {
     return res.redirect('http://localhost:8080/runner.html#/login')
   }
-  res.redirect('http://localhost:8080/login')
+  res.redirect('http://localhost:8080/#/login')
 }
 app.get('/', authenticate, homePageHandler)
 
