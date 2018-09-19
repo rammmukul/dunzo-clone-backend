@@ -3,6 +3,9 @@ const Runner = require('../models/runners')
 const Order = require('../models/orders')
 const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { RunnerOauth2Client, runnerOauth2, runnerLoginURL } = require('../../oAuth/oAuthGoogle')
+const EventEmitter = require('events')
+
+const RunnerEvents = new EventEmitter()
 
 async function getAccessToken (code) {
   try {
@@ -56,18 +59,20 @@ async function deleteJWTValue (emailID, jwt) {
 
 async function takeNewOrder (runner) {
   try {
-  const order = await Order.findOneAndUpdate(
-    {status: 'placed'},
-    {status: 'assigned', runner: runner._id}
-  )
-  await Runner.findOneAndUpdate(
-    {_id: runner._id},
-    {currentOrder: order._id}
-  )
+    const order = await Order.findOneAndUpdate(
+      {status: 'placed'},
+      {status: 'assigned', runner: runner._id}
+    )
+    await Runner.findOneAndUpdate(
+      {_id: runner._id},
+      {currentOrder: order._id}
+    )
   } catch (e) {
     console.log('no new order')
   }
 }
+
+RunnerEvents.on('runner free', takeNewOrder)
 
 module.exports = {
   async getRunnerProfile (req, res) {
@@ -104,7 +109,7 @@ module.exports = {
       const runner = await handleRunnerRecord(runnerInfo.data, jwt)
       res.cookie('access_token', jwt)
       res.redirect('http://localhost:8080/runner.html')
-      takeNewOrder(runner)
+      RunnerEvents.emit('runner free', runner)
     } catch (e) {
       return res.redirect('http://localhost:8080/runner.html#/login')
     }
@@ -154,9 +159,10 @@ module.exports = {
       {status: 'fulfilled'}
     )
     res.json(result)
-    takeNewOrder(runner)
+    RunnerEvents.emit('runner free', runner)
   },
   redirectToCurrentOrder (req, res) {
     res.redirect('http://localhost:8080/runner.html#/showcurrentassignment')
-  }
+  },
+  RunnerEvents
 }
