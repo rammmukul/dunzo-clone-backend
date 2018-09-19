@@ -40,10 +40,11 @@ io.on('connection', async function (socket) {
       socket.emit('past messages', messages[orderID])
     })
 
-    socket.on('chat message', async ([orderID, message]) => {
+    socket.on('chat message', async ([orderID, message], ack) => {
       const msgObj = {from: 'user', email: user.email, message}
       socket.to(orderID).emit('chat message', msgObj)
       messages[orderID].push(msgObj)
+      ack(msgObj)
     })
   } else {
     socket.on('position update', async (pos) => {
@@ -67,13 +68,13 @@ io.on('connection', async function (socket) {
       socket.emit('past messages', messages[orderID])
     })
 
-    socket.on('chat message', async ([orderID, message]) => {
+    socket.on('chat message', async ([orderID, message], ack) => {
       const msgObj = {from: 'runner', email: user.email, message}
       socket.to(orderID).emit('chat message', msgObj)
       messages[orderID].push(msgObj)
+      ack(msgObj)
     })
   }
-
   socket.on('disconnect', () => console.log('no more'))
 })
 
