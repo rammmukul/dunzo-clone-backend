@@ -55,6 +55,7 @@ async function deleteJWTValue (emailID, jwt) {
 }
 
 async function takeNewOrder (runner) {
+  try {
   const order = await Order.findOneAndUpdate(
     {status: 'placed'},
     {status: 'assigned', runner: runner._id}
@@ -63,6 +64,9 @@ async function takeNewOrder (runner) {
     {_id: runner._id},
     {currentOrder: order._id}
   )
+  } catch (e) {
+    console.log('no new order')
+  }
 }
 
 module.exports = {
@@ -131,7 +135,6 @@ module.exports = {
     res.json(result)
   },
   async fulfillOrder (req, res) {
-    console.log('locals', res.locals)
     const runner = await Runner.findOne({
       emailID: res.locals.emailID,
       currentOrder: req.body.orderID
