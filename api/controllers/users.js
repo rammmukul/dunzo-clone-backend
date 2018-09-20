@@ -6,23 +6,10 @@ const { RunnerEvents } = require('./runners')
 const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { oauth2Client, oauth2, userLoginURL } = require('../../oAuth/oAuthGoogle')
 const EventEmitter = require('events')
-const { notifyRunner, notifyUser } = require('./notifications')
+const Notify = require('./notifications')
 
 const UserEvents = new EventEmitter()
-UserEvents.on('runner assigned', (order, userID, runnerID) => {
-  notifyRunner(runnerID,
-    {
-      title: 'new order assigned',
-      body: `Order: ${order.description}`
-    }
-  )
-  notifyUser(userID,
-    {
-      title: 'Runner assigned to your order',
-      body: `Order: ${order.description}`
-    }
-  )
-})
+UserEvents.on('runner assigned', Notify.newAssignment)
 
 async function placeOrder (req, res) {
   const orderBody = {
@@ -66,12 +53,34 @@ async function assignRunner (order) {
       {status: 'assigned', runner: runner._id}
     )
     const user = result.user
-    UserEvents.emit('runner assigned', order, user._id, runner._id)
+    UserEvents.emit('runner assigned', order, user, runner)
     return true
   } catch (e) {
     console.log(e)
     return false
   }
+}
+
+async function cancelOrder (req, res) {
+  const user = await User.findOne({
+    emailID: res.locals.emailID
+  })
+  const order = await Order.findOneAndUpdate(
+    {_id: req.body.orderID, user: user._id},
+    {status: 'canceled'}
+  ).where('status').nin(['fulfilled', 'canceled'])
+  if (!order) {
+    return res.json({error: 'order not your\'s or allready fulfilled or canceled'})
+  }
+  const runner = await Runner.findOneAndUpdate(
+    {_id: order.runner},
+    {
+      currentOrder: null
+    }
+  )
+  res.json(!!order)
+  RunnerEvents.emit('runner free', runner)
+  Notify.orderCanceled(order, order.user, runner)
 }
 
 async function oauthcallback (req, res) {
@@ -198,5 +207,6 @@ module.exports = {
   getOrdersAndSend,
   getOrderDetailsAndSend,
   getUserProfile,
-  UserEvents
+  UserEvents,
+  cancelOrder
 }

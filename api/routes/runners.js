@@ -18,6 +18,7 @@ authenticatedRouter.get('/', runnersController.redirectToCurrentOrder)
 authenticatedRouter.get('/pastOrders', runnersController.getPastOrders)
 authenticatedRouter.post('/takeorder', runnersController.takeOrder)
 authenticatedRouter.post('/fulfillorder', runnersController.fulfillOrder)
+authenticatedRouter.post('/cancelorder', runnersController.cancelOrder)
 
 router.use(authenticatedRouter)
 module.exports = router

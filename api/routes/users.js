@@ -15,6 +15,7 @@ authenticatedRouter.get('/getOrders', authenticate, usersController.getOrdersAnd
 authenticatedRouter.get('/getOrderDetails', authenticate, usersController.getOrderDetailsAndSend)
 authenticatedRouter.get('/signout', authenticate, usersController.signoutUser)
 authenticatedRouter.post('/placeorder', authenticate, usersController.placeOrder)
+authenticatedRouter.post('/cancelorder', authenticate, usersController.cancelOrder)
 authenticatedRouter.get('/profile', authenticate, usersController.getUserProfile)
 
 router.use(authenticatedRouter)

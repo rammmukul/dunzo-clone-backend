@@ -4,6 +4,7 @@ const Order = require('../models/orders')
 const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { RunnerOauth2Client, runnerOauth2, runnerLoginURL } = require('../../oAuth/oAuthGoogle')
 const EventEmitter = require('events')
+const Notify = require('./notifications')
 
 const RunnerEvents = new EventEmitter()
 
@@ -62,11 +63,12 @@ async function takeNewOrder (runner) {
     const order = await Order.findOneAndUpdate(
       {status: 'placed'},
       {status: 'assigned', runner: runner._id}
-    )
-    await Runner.findOneAndUpdate(
+    ).populate('user')
+    const runnerAssigned = await Runner.findOneAndUpdate(
       {_id: runner._id},
       {currentOrder: order._id}
     )
+    Notify.newAssignment(order, order.user, runnerAssigned)
   } catch (e) {
     console.log('no new order')
   }
@@ -145,7 +147,7 @@ module.exports = {
       currentOrder: req.body.orderID
     })
     if (!runner) {
-      return res.json({error: 'order not assigned to you or allready fulfilled'})
+      return res.json({error: 'order not assigned to you or allready fulfilled or canceled'})
     }
     await Runner.findOneAndUpdate(
       {emailID: res.locals.emailID},
@@ -154,15 +156,40 @@ module.exports = {
         pastOrders: [...runner.pastOrders, runner.currentOrder]
       }
     )
-    const result = await Order.findOneAndUpdate(
+    const order = await Order.findOneAndUpdate(
       {_id: runner.currentOrder},
       {status: 'fulfilled'}
-    )
-    res.json(result)
+    ).populate('user')
+    res.json(order)
     RunnerEvents.emit('runner free', runner)
+    Notify.orderFulfilled(order, order.user, runner)
   },
   redirectToCurrentOrder (req, res) {
     res.redirect('http://localhost:8080/runner.html#/showcurrentassignment')
+  },
+  async cancelOrder (req, res) {
+    const runner = await Runner.findOne({
+      emailID: res.locals.emailID,
+      currentOrder: req.body.orderID
+    })
+    if (!runner) {
+      return res.json({error: 'order not assigned to you or allready fulfilled or canceled'})
+    }
+    await Runner.findOneAndUpdate(
+      {emailID: res.locals.emailID},
+      {
+        currentOrder: null,
+        pastOrders: [...runner.pastOrders, runner.currentOrder]
+      }
+    )
+    const order = await Order.findOneAndUpdate(
+      {_id: runner.currentOrder},
+      {status: 'canceled'}
+    ).populate('user')
+
+    res.json(!!order)
+    RunnerEvents.emit('runner free', runner)
+    Notify.orderCanceled(order, order.user, runner)
   },
   RunnerEvents
 }
