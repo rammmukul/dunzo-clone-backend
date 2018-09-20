@@ -15,20 +15,31 @@ module.exports = {
     res.json(vapidKeys.publicKey)
   },
   async subscribe (req, res) {
-    console.log(res.locals.decodedJWT, 'notification subscription', req.body.subscription)
     const user = res.locals.decodedJWT.type === 'runner'
       ? await Runner.findOne({emailID: res.locals.emailID})
       : await Users.findOne({emailID: res.locals.emailID})
     void (new Subscription({
-      subscription: req.body.subscription,
+      subscription: req.body,
       userType: res.locals.decodedJWT.type,
       userID: user._id
     })).save()
     res.send(true)
     try {
-      await webPush.sendNotification(req.body.subscription, '"yay!!!!!!!!"')
+      await webPush.sendNotification(req.body, '{"title":"Notifications enabled!"}')
     } catch (error) {
       console.log(error)
     }
+  },
+  async notifyRunner (runnerID, notification) {
+    const subscriptions = await Subscription.find({userType: 'runner', userID: runnerID})
+    subscriptions.map(subs =>
+      webPush.sendNotification(subs.subscription, JSON.stringify(notification))
+    )
+  },
+  async notifyUser (userID, notification) {
+    const subscriptions = await Subscription.find({userType: 'user', userID: userID})
+    subscriptions.map(subs =>
+      webPush.sendNotification(subs.subscription, JSON.stringify(notification))
+    )
   }
 }

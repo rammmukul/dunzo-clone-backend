@@ -16,7 +16,7 @@ async function authenticate (req, res, next) {
       return res.redirect('http://localhost:8080/runner.html#/login')
     }
     res.redirect('http://localhost:8080/#/login')
-    console.log(e)
+    console.log('NOT Authenticated', e)
   }
 }
 

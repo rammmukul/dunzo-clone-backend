@@ -6,9 +6,23 @@ const { RunnerEvents } = require('./runners')
 const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { oauth2Client, oauth2, userLoginURL } = require('../../oAuth/oAuthGoogle')
 const EventEmitter = require('events')
+const { notifyRunner, notifyUser } = require('./notifications')
 
 const UserEvents = new EventEmitter()
-UserEvents.on('runner assigned', (order, user) => console.log(`runner assigned to ${order} of ${user}`))
+UserEvents.on('runner assigned', (order, userID, runnerID) => {
+  notifyRunner(runnerID,
+    {
+      title: 'new order assigned',
+      body: `Order: ${order.description}`
+    }
+  )
+  notifyUser(userID,
+    {
+      title: 'Runner assigned to your order',
+      body: `Order: ${order.description}`
+    }
+  )
+})
 
 async function placeOrder (req, res) {
   const orderBody = {
@@ -52,7 +66,7 @@ async function assignRunner (order) {
       {status: 'assigned', runner: runner._id}
     )
     const user = result.user
-    UserEvents.emit('runner assigned', order._id, user)
+    UserEvents.emit('runner assigned', order, user._id, runner._id)
     return true
   } catch (e) {
     console.log(e)
