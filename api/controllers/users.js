@@ -3,10 +3,12 @@ const User = require('../models/users')
 const Order = require('../models/orders')
 const Runner = require('../models/runners')
 const { RunnerEvents } = require('./runners')
-const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { oauth2Client, oauth2, userLoginURL } = require('../../oAuth/oAuthGoogle')
 const EventEmitter = require('events')
 const Notify = require('./notifications')
+
+const privateKey = process.env.jwtPrivateKey
+const baseUrlFE = process.env.baseUrlFE
 
 const UserEvents = new EventEmitter()
 UserEvents.on('runner assigned', Notify.newAssignment)
@@ -96,10 +98,10 @@ async function oauthcallback (req, res) {
       }, privateKey)
       await handleUserRecord(userInfo.data, jwToken)
       res.cookie('access_token', jwToken)
-      res.redirect('http://localhost:8080/')
+      res.redirect(baseUrlFE + '/user.html#/placeorder')
     }
   } catch (error) {
-    res.redirect('http://localhost:8080/#/login')
+    res.redirect(baseUrlFE + '/user.html#/login')
     console.log(error)
   }
 }
@@ -148,12 +150,12 @@ async function signoutUser (req, res) {
     let deletion = await deleteJWTValue(res.locals.emailID, res.locals.jwt)
     if (deletion) {
       res.clearCookie('access_token', { path: '/' })
-      res.redirect('http://localhost:8080/#/login')
+      res.redirect(baseUrlFE + '/user.html#/login')
     } else {
       res.status(500).json({ message: 'logged out operation was unsuccessfull' })
     }
   } else {
-    res.redirect('http://localhost:8080/#/login')
+    res.redirect(baseUrlFE + '/user.html#/login')
   }
 }
 

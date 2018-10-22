@@ -1,0 +1,12 @@
+{
+  "env": {
+    "mongoURL": "@dunzoclone-mongo-url",
+    "jwtPrivateKey": "@dunzoclone-jwtprivatekey",
+    "oauthClientSecret": "@dunzoclone-oauthclientsecret",
+    "oauthClientID": "@dunzoclone-oauthclientid",
+    "vapidPub": "@dunzoclone-vapidpub",
+    "vapidPri": "@dunzoclone-vapidpri",
+    "baseUrlBE": "@dunzoclone-baseurlbe",
+    "baseUrlFE": "@dunzoclone-baseurlfe"
+  }
+}

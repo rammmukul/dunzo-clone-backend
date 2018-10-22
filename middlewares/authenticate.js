@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken')
 const User = require('../api/models/users')
 const Runner = require('../api/models/runners')
-const { privateKey } = require('../secrets/jwtPrivateKey')
+
+const privateKey = process.env.jwtPrivateKey
+const baseUrlFE = process.env.baseUrlFE
 
 async function authenticate (req, res, next) {
   try {
@@ -13,9 +15,9 @@ async function authenticate (req, res, next) {
   } catch (e) {
     res.locals.jwt = false
     if (req.baseUrl.startsWith('/runner')) {
-      return res.redirect('http://localhost:8080/runner.html#/login')
+      return res.redirect(baseUrlFE + '/runner.html#/login')
     }
-    res.redirect('http://localhost:8080/#/login')
+    res.redirect(baseUrlFE + '/user.html#/login')
     console.log('NOT Authenticated', e)
   }
 }

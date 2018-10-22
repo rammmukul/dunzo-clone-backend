@@ -11,6 +11,8 @@ const usersRoute = require('./api/routes/users')
 const runnersRoute = require('./api/routes/runners')
 const notificationsRoute = require('./api/routes/notifications')
 
+const baseUrlFE = process.env.baseUrlFE
+
 app.use(cors())
 app.use(morgan('dev'))
 app.use(bodyParser.json())
@@ -24,18 +26,19 @@ const homePageHandler = (req, res, next) => {
   let {baseUrl} = req
   if (res.locals.jwt) {
     if (baseUrl.startsWith('/runner')) {
-      return res.redirect('http://localhost:8080/runner.html')
+      return res.redirect(baseUrlFE + '/runner.html')
     }
-    return res.redirect('http://localhost:8080/')
+    return res.redirect(baseUrlFE + '/user.html#/placeorder')
   }
   if (baseUrl.startsWith('/runner')) {
-    return res.redirect('http://localhost:8080/runner.html#/login')
+    return res.redirect(baseUrlFE + '/runner.html#/login')
   }
-  res.redirect('http://localhost:8080/#/login')
+  res.redirect(baseUrlFE + '/user.html#/login')
 }
 app.get('/', authenticate, homePageHandler)
+app.use('/', express.static('public'))
 
-mongoose.connect('mongodb://localhost:27017/dunzoClone', { useNewUrlParser: true })
+mongoose.connect(process.env.mongoURL, { useNewUrlParser: true })
 
 let db = mongoose.connection
 

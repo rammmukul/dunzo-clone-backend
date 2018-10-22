@@ -1,8 +1,11 @@
 const webPush = require('web-push')
-const vapidKeys = require('../../secrets/vapidKeys')
 const Subscription = require('../models/notificationSubscription')
 const Users = require('../models/users')
 const Runner = require('../models/runners')
+
+const baseUrlBE = process.env.baseUrlFE
+const vapidPub = process.env.vapidPub
+const vapidPri = process.env.vapidPri
 
 module.exports = {
   getPublicVapidKey,
@@ -15,13 +18,13 @@ module.exports = {
 }
 
 webPush.setVapidDetails(
-  'http://localhost:8000',
-  vapidKeys.publicKey,
-  vapidKeys.privateKey
+  baseUrlBE,
+  vapidPub,
+  vapidPri
 )
 
 async function getPublicVapidKey (req, res) {
-  res.json(vapidKeys.publicKey)
+  res.json(vapidPub)
 }
 
 async function subscribe (req, res) {

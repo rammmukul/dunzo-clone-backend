@@ -1,7 +1,9 @@
 const {google} = require('googleapis')
-const {clientCredentials} = require('../secrets/googleOauthCredentials')
 
-const redirectURI = 'http://localhost:8000/user/oauthcallback'
+const baseUrlBE = process.env.baseUrlBE
+const redirectURI = baseUrlBE + '/user/oauthcallback'
+const oauthClientID = process.env.oauthClientID
+const oauthClientSecret = process.env.oauthClientSecret
 
 const scopes = [
   'https://www.googleapis.com/auth/userinfo.email',
@@ -9,15 +11,15 @@ const scopes = [
 ]
 
 const oauth2Client = new google.auth.OAuth2(
-  clientCredentials.clientID,
-  clientCredentials.clientSecret,
+  oauthClientID,
+  oauthClientSecret,
   redirectURI
 )
 
 const RunnerOauth2Client = new google.auth.OAuth2(
-  clientCredentials.clientID,
-  clientCredentials.clientSecret,
-  'http://localhost:8000/runner/oauthcallback'
+  oauthClientID,
+  oauthClientSecret,
+  baseUrlBE + '/runner/oauthcallback'
 )
 
 const oauth2 = google.oauth2({

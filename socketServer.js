@@ -1,11 +1,11 @@
 const http = require('./server')
 const io = require('socket.io')(http)
 const JWT = require('jsonwebtoken')
-const { privateKey } = require('./secrets/jwtPrivateKey')
 const haversine = require('haversine')
 const Runners = require('./api/models/runners')
 const Orders = require('./api/models/orders')
 
+const privateKey = process.env.jwtPrivateKey
 const runnerPos = {}
 const messages = {}
 

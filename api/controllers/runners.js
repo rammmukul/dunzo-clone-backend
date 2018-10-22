@@ -1,10 +1,12 @@
 const JWT = require('jsonwebtoken')
 const Runner = require('../models/runners')
 const Order = require('../models/orders')
-const { privateKey } = require('../../secrets/jwtPrivateKey')
 const { RunnerOauth2Client, runnerOauth2, runnerLoginURL } = require('../../oAuth/oAuthGoogle')
 const EventEmitter = require('events')
 const Notify = require('./notifications')
+
+const privateKey = process.env.jwtPrivateKey
+const baseUrlFE = process.env.baseUrlFE
 
 const RunnerEvents = new EventEmitter()
 
@@ -110,10 +112,10 @@ module.exports = {
       )
       const runner = await handleRunnerRecord(runnerInfo.data, jwt)
       res.cookie('access_token', jwt)
-      res.redirect('http://localhost:8080/runner.html')
+      res.redirect(baseUrlFE + '/runner.html')
       RunnerEvents.emit('runner free', runner)
     } catch (e) {
-      return res.redirect('http://localhost:8080/runner.html#/login')
+      return res.redirect(baseUrlFE + '/runner.html#/login')
     }
   },
   async signoutRunner (req, res) {
@@ -121,12 +123,12 @@ module.exports = {
       let deletion = await deleteJWTValue(res.locals.emailID, res.locals.jwt)
       if (deletion) {
         res.clearCookie('access_token')
-        res.redirect('http://localhost:8080/runner.html#/login')
+        res.redirect(baseUrlFE + '/runner.html#/login')
       } else {
         res.status(500).json({ message: 'logged out operation was unsuccessfull' })
       }
     } else {
-      res.redirect('http://localhost:8080/runner.html#/login')
+      res.redirect(baseUrlFE + '/runner.html#/login')
     }
   },
   async takeOrder (req, res) {
@@ -165,7 +167,7 @@ module.exports = {
     Notify.orderFulfilled(order, order.user, runner)
   },
   redirectToCurrentOrder (req, res) {
-    res.redirect('http://localhost:8080/runner.html#/showcurrentassignment')
+    res.redirect(baseUrlFE + '/runner.html#/showcurrentassignment')
   },
   async cancelOrder (req, res) {
     const runner = await Runner.findOne({
